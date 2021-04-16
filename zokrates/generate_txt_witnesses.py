@@ -10,7 +10,6 @@ def write_signature_for_zokrates_cli(sig, pk, hash_of_pk, msg, path):
     args = " ".join(map(str, args))
 
     bh = [str(int(hash_of_pk.hex()[i:i+8], 16)) for i in range(0,len(hash_of_pk.hex()), 8)]
-    print(bh)
     to_write_hash = " ".join(bh)
     args = args + " " + to_write_hash
 
@@ -26,6 +25,11 @@ def write_signature_for_zokrates_cli(sig, pk, hash_of_pk, msg, path):
         for l in args:
             file.write(l)
 
+def hash_pk(pk):
+    pk_str = str(pk.p.x.n) + str(pk.p.y.n)
+    hash_of_pk = hashlib.sha256(pk_str.encode("utf-8")).digest()
+    return hash_of_pk
+
 if __name__ == "__main__":
     raw_msg = "This is my secret message"
     msg = hashlib.sha512(raw_msg.encode("utf-8")).digest()
@@ -37,11 +41,6 @@ if __name__ == "__main__":
     sig = sk.sign(msg)
 
     pk = PublicKey.from_private(sk)
-    is_verified = pk.verify(sig, msg)
-    print('Message is signed by public key: ', is_verified)
+    assert(pk.verify(sig, msg))
 
-    pk_str = str(pk.p.x.n) + str(pk.p.y.n)
-    print('Public key is: ', pk_str)
-    hash_of_pk = hashlib.sha256(pk_str.encode("utf-8")).digest()
-
-    write_signature_for_zokrates_cli(sig, pk, hash_of_pk, msg, 'zokrates_inputs.txt')
+    write_signature_for_zokrates_cli(sig, pk, hash_pk(pk), msg, 'zokrates_inputs.txt')
