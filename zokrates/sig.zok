@@ -4,9 +4,19 @@ import "hashes/sha256/512bit" as sha256
 import "signatures/verifyEddsa.code" as verifyEddsa
 import "utils/pack/u32/nonStrictUnpack256" as unpack256u
 
+/// Arguments:
+///    R, S: EdDSA Signature
+///    A: Public Key used for the above signature
+///    hashOfA: sha256 hash of the public key A
+///    M0: 256bit array. First 256bits of the message used to create S
+///    M1: 256bit array. Trailing 256bits of the message used to create S
+///
+/// Returns:
+///     Return true iff EdDSA signature verifies for the n-tuple (R, S, A, M0, M1) 
+///     and sha256(A) == hashOfA
+
 def main(private field[2] R, private field S, private field[2] A, u32[8] hashOfA, u32[8] M0, u32[8] M1) -> (bool):
     BabyJubJubParams context = context()
     bool isSigValid = verifyEddsa(R, S, A, M0, M1, context)
     bool hashAsAreEqual = (sha256(unpack256u(A[0]), unpack256u(A[1])) == hashOfA)    
     return isSigValid && hashAsAreEqual
-
